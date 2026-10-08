@@ -89,9 +89,11 @@ def write_report(
     presentation.mkdir(parents=True, exist_ok=True)
     text = _markdown(profile, metrics, best, detection, chronos_note, prophet_note)
     (report_dir / "methodology.md").write_text(text, encoding="utf-8")
-    (presentation / "index.html").write_text(
-        _html(profile, metrics, best, detection, chronos_note, prophet_note), encoding="utf-8"
-    )
+    page = _html(profile, metrics, best, detection, chronos_note, prophet_note)
+    (presentation / "index.html").write_text(page, encoding="utf-8")
+    docs = ROOT / "docs"
+    docs.mkdir(parents=True, exist_ok=True)
+    (docs / "index.html").write_text(page, encoding="utf-8")
 
 
 def _markdown(profile, metrics, best, detection, chronos_note, prophet_note: str = "") -> str:
