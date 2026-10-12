@@ -451,8 +451,9 @@ def _html(profile, metrics, best, detection, chronos_note, prophet_note: str = "
                     f"{_num(float(part['mae'].iloc[0]), 0)}"
                     f"<br><span class=\"sub\">{_num(float(part['r2'].iloc[0]), 2)}</span>"
                 )
+        mark = "best" if item["model"] == best else ""
         rows.append(
-            "<tr>"
+            f"<tr class=\"{mark}\">"
             f"<td>{html.escape(MODEL_LABEL.get(item['model'], item['model']))}</td>"
             + "".join(f"<td>{c}</td>" for c in cells)
             + f"<td>{_num(item['mae'], 1)}</td><td>{_num(item['r2'], 2)}</td></tr>"
@@ -463,8 +464,9 @@ def _html(profile, metrics, best, detection, chronos_note, prophet_note: str = "
         if not item:
             continue
         delay = "—" if item["median_delay"] is None else _num(item["median_delay"], 1)
+        mark = "best" if name == winner else ""
         det_rows.append(
-            "<tr>"
+            f"<tr class=\"{mark}\">"
             f"<td>{html.escape(DETECTOR_LABEL.get(name, name))}</td>"
             f"<td>{_num(100 * item['fpr'], 1)}%</td>"
             f"<td>{_num(100 * item['tpr'], 1)}%</td>"
@@ -497,21 +499,33 @@ def _html(profile, metrics, best, detection, chronos_note, prophet_note: str = "
   <style>
     :root {{ color-scheme: light; }}
     body {{ margin: 0; background: #f3f0e8; color: #1c1915; font: 18px/1.55 Georgia, "Iowan Old Style", serif; }}
-    main {{ max-width: 880px; margin: 0 auto; padding: 48px 20px 80px; }}
+    main {{ max-width: 980px; margin: 0 auto; padding: 28px 20px 80px; }}
     h1 {{ font-weight: 500; font-size: 40px; line-height: 1.15; margin: 0 0 12px; }}
-    h2 {{ font-weight: 500; font-size: 26px; margin: 40px 0 8px; }}
+    h2 {{ font-weight: 500; font-size: 28px; margin: 0 0 8px; }}
+    h3 {{ font-family: "Segoe UI", sans-serif; font-weight: 600; font-size: 18px; margin: 22px 0 8px; }}
     p, li {{ font-family: "Segoe UI", sans-serif; font-size: 16.5px; }}
     .lead {{ font-size: 20px; }}
-    .stat {{ display: flex; gap: 16px; flex-wrap: wrap; margin: 20px 0; }}
-    .stat div {{ background: white; border: 1px solid #ddd6c8; padding: 12px 16px; min-width: 160px; }}
+    nav {{ display: flex; gap: 8px; flex-wrap: wrap; margin: 18px 0 8px; }}
+    nav a {{ font-family: "Segoe UI", sans-serif; font-size: 14px; color: #0e6b45; background: white; border: 1px solid #ddd6c8; text-decoration: none; padding: 8px 12px; }}
+    .slide {{ background: white; border: 1px solid #ddd6c8; padding: 28px 22px; margin: 22px 0; }}
+    .kicker {{ font-family: "Segoe UI", sans-serif; font-size: 13px; color: #0e6b45; margin: 0 0 8px; }}
+    .stat {{ display: flex; gap: 12px; flex-wrap: wrap; margin: 16px 0; }}
+    .stat div {{ background: #f7f4ec; border: 1px solid #e4dccb; padding: 12px 16px; min-width: 140px; }}
     .stat b {{ display: block; font-family: "Segoe UI", sans-serif; font-size: 22px; }}
     .stat span {{ font-family: "Segoe UI", sans-serif; font-size: 13px; color: #5c564c; }}
+    .flow {{ display: flex; flex-wrap: wrap; gap: 8px; align-items: stretch; margin: 16px 0; }}
+    .flow div {{ background: #f7f4ec; border: 1px solid #e4dccb; padding: 12px 14px; flex: 1 1 140px; font-family: "Segoe UI", sans-serif; font-size: 15px; }}
+    .flow b {{ display: block; font-size: 13px; color: #0e6b45; font-weight: 600; }}
+    .cards {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }}
+    .card {{ border: 1px solid #e4dccb; padding: 14px; background: #f7f4ec; }}
+    .card b {{ display: block; font-family: "Segoe UI", sans-serif; margin-bottom: 6px; }}
     .scroll {{ overflow-x: auto; }}
-    table {{ width: 100%; min-width: 640px; border-collapse: collapse; background: white; font-family: "Segoe UI", sans-serif; font-size: 14px; }}
+    table {{ width: 100%; min-width: 640px; border-collapse: collapse; font-family: "Segoe UI", sans-serif; font-size: 14px; }}
     th, td {{ text-align: right; padding: 8px 10px; border-bottom: 1px solid #e4dccb; }}
     th:first-child, td:first-child {{ text-align: left; }}
     th {{ font-weight: 600; }}
-    figure {{ margin: 18px 0; background: white; border: 1px solid #ddd6c8; padding: 12px; }}
+    tr.best td {{ background: #e7f5ee; font-weight: 600; }}
+    figure {{ margin: 18px 0; border: 1px solid #e4dccb; padding: 12px; }}
     figcaption {{ font-family: "Segoe UI", sans-serif; font-size: 14px; margin-bottom: 6px; }}
     svg {{ width: 100%; height: auto; }}
     .legend {{ display: flex; gap: 16px; font-size: 13px; }}
@@ -525,57 +539,69 @@ def _html(profile, metrics, best, detection, chronos_note, prophet_note: str = "
 </head>
 <body>
 <main>
-  <p class="note">Задача 2 конкурса СберИндекса · расходы муниципалитетов, 2023–2024</p>
-  <h1>Прогноз потребления и ранний сигнал шока</h1>
-  <p class="lead">Лучший прогноз — {html.escape(MODEL_LABEL.get(best, best))}. Средняя MAE {_num(best_mae, 1)} против {_num(prophet_mae, 1)} у Prophet. Лучший детектор сдвига — {html.escape(DETECTOR_LABEL.get(winner, winner))}.</p>
+  <p class="kicker">Презентация итогов · задача 2 конкурса СберИндекса</p>
+  <h1>Прогноз расходов муниципалитетов и поиск структурных сдвигов</h1>
+  <p class="lead">Лучший прогноз — {html.escape(MODEL_LABEL.get(best, best))}: средняя MAE {_num(best_mae, 1)} против {_num(prophet_mae, 1)} у Prophet. Лучший детектор — {html.escape(DETECTOR_LABEL.get(winner, winner))}.</p>
+  <nav>
+    <a href="#metrics">1. Сравнение и метрики</a>
+    <a href="#architecture">2. Архитектура</a>
+    <a href="#cases">3. Реальные примеры</a>
+  </nav>
   <div class="stat">
     <div><b>{profile['n_territories']}</b><span>муниципалитетов</span></div>
-    <div><b>24</b><span>месяца, январь 2023 — декабрь 2024</span></div>
-    <div><b>1, 3, 6, 12</b><span>горизонта, месяцы</span></div>
+    <div><b>24</b><span>месяца, 2023–2024</span></div>
+    <div><b>1, 3, 6, 12</b><span>горизонта прогноза</span></div>
+    <div><b>MAE и R²</b><span>метрики оценки</span></div>
   </div>
-  <h2>Методология</h2>
-  <ol>
-    <li>Цель — месячный расход «все категории». Категории, соседи, ставка, ИПЦ и новости — признаки.</li>
-    <li>Прогноз прямой: на дату отсечения модель не видит будущее и сразу называет значение через 1, 3, 6 или 12 месяцев.</li>
-    <li>Модели сравниваются по MAE, рядом стоит R². База — Prophet. Лучшая модель посчитана на всех четырёх горизонтах и точнее этой базы.</li>
-    <li>Chronos-Bolt Small — фундаментная модель. Она смотрит каждый ряд отдельно и не дообучается на этих данных.</li>
-    <li>Новость привязывается к месяцу и к региону из справочника. Ставка — ко всей стране. Будущие новости в прогноз не входят.</li>
-    <li>Сдвиг ищется по остатку прогноза на один месяц. Методы сравниваются по полноте, доле ложных тревог около 10% и задержке.</li>
-  </ol>
-  <h2>Архитектура</h2>
-  <ol>
-    <li>Расходы, дороги и доступность рынков СберИндекса, плюс справочник территорий.</li>
-    <li>Ставка, ИПЦ, календарь событий и рабочие дни.</li>
-    <li>Панель «муниципалитет × месяц».</li>
-    <li>Шесть прогнозов: Prophet, сезонный наивный, панельный сезонный, LightGBM, Chronos-Bolt и их медиана.</li>
-    <li>MAE и R² на горизонтах 1, 3, 6 и 12 месяцев.</li>
-    <li>Детекторы сдвига на остатке лучшего прогноза: PELT, байесовский онлайн-детектор, CUSUM, панельный z-score, новости.</li>
-    <li>Отчёт и эта страница читают уже посчитанные файлы.</li>
-  </ol>
-  <h2>Прогноз</h2>
-  <p>Цель — категория «все категории». Пять остальных категорий, соседи по шоссе, доступность рынков, ставка, ИПЦ и новости региона входят в LightGBM. Chronos-Bolt смотрит только на сам ряд. {html.escape(chronos_note or "")}</p>
-  <div class="scroll"><table>
-    <thead><tr><th>Модель</th><th>1 мес.</th><th>3 мес.</th><th>6 мес.</th><th>12 мес.</th><th>Средняя MAE</th><th>Средний R²</th></tr></thead>
-    <tbody>{''.join(rows)}</tbody>
-  </table></div>
-  <p class="note">В ячейке горизонта сверху MAE, снизу R². Средняя MAE усредняет те горизонты, где модель посчитана. У LightGBM нет горизонта 12 месяцев, поэтому его среднюю нельзя ставить рядом со средней по четырём горизонтам. Skill лучшей модели относительно Prophet: {_num(1 - best_mae / prophet_mae, 2)}.</p>
-  <p class="note">{html.escape(prophet_note or "")}</p>
-  {_paragraphs(_forecast_reading(by_h, overall))}
-  <h2>Структурные сдвиги</h2>
-  <p>Онлайн-методы смотрят на остаток месячного прогноза. Порог подобран так, чтобы на территориях без искусственного скачка ложная тревога была около 10%. В синтетике расход с случайного месяца умножен на 1,3.</p>
-  <div class="scroll"><table>
-    <thead><tr><th>Метод</th><th>Ложные тревоги</th><th>Полнота</th><th>Точность</th><th>Задержка, мес.</th></tr></thead>
-    <tbody>{''.join(det_rows)}</tbody>
-  </table></div>
-  {_paragraphs(_detector_reading(detection["methods"], winner))}
-  <h2>Реальные эпизоды</h2>
-  <ul>{''.join(flood_bits) or '<li>Региональные сопоставления не собрались: проверьте поле региона в справочнике.</li>'}</ul>
-  <p>Июль 2024 (ставка 18%): средний |z| {_num(detection['cases']['rate_hike_2024_07_mean_abs_z'], 2)}, доля территорий с |z| &gt; 2 равна {_num(100 * (detection['cases']['share_abs_z_above_2_july'] or 0), 1)}%. Февраль 2024: {_num(detection['cases']['quiet_2024_02_mean_abs_z'], 2)} и {_num(100 * (detection['cases']['share_abs_z_above_2_february'] or 0), 1)}%.</p>
-  {case_notes}
-  {''.join(charts)}
-  <h2>Как стыкуются новости</h2>
-  <p>Национальное событие получает каждый муниципалитет. Региональное — только территории субъекта из справочника СберИндекса. Месяц события — это месяц в ряде расходов. На дату прогноза видны только уже случившиеся события.</p>
-  <p class="note">Полный текст — в report/methodology.md. Чтобы воспроизвести расчёт: python -m src.run из окружения Python 3.11.</p>
+
+  <section class="slide" id="metrics">
+    <p class="kicker">Блок 1 · результаты сравнения и метрики</p>
+    <h2>Сравнение моделей прогноза и детекторов сдвига</h2>
+    <p>Главная метрика — MAE, чем меньше, тем точнее. Рядом в каждой ячейке стоит R². Зелёная строка — выбранная модель или метод. Прогноз проверялся на горизонтах 1, 3, 6 и 12 месяцев.</p>
+    <h3>Модели прогнозирования</h3>
+    <div class="scroll"><table>
+      <thead><tr><th>Модель</th><th>1 мес.</th><th>3 мес.</th><th>6 мес.</th><th>12 мес.</th><th>Средняя MAE</th><th>Средний R²</th></tr></thead>
+      <tbody>{''.join(rows)}</tbody>
+    </table></div>
+    <p class="note">В ячейке горизонта сверху MAE, снизу R². У LightGBM нет оценки на 12 месяцев: для обучения не хватает 2022 года, поэтому его среднюю MAE нельзя сравнивать со средней по четырём горизонтам. Skill лучшей модели относительно Prophet: {_num(1 - best_mae / prophet_mae, 2)}.</p>
+    {_paragraphs(_forecast_reading(by_h, overall))}
+    <h3>Методы обнаружения структурных сдвигов</h3>
+    <p>Порог каждого метода подобран так, чтобы на территориях без искусственного скачка ложных тревог было около 10%. В проверке расход 80 муниципалитетов с случайного месяца умножен на 1,3.</p>
+    <div class="scroll"><table>
+      <thead><tr><th>Метод</th><th>Ложные тревоги</th><th>Полнота</th><th>Точность</th><th>Задержка, мес.</th></tr></thead>
+      <tbody>{''.join(det_rows)}</tbody>
+    </table></div>
+    {_paragraphs(_detector_reading(detection["methods"], winner))}
+  </section>
+
+  <section class="slide" id="architecture">
+    <p class="kicker">Блок 2 · архитектура решения</p>
+    <h2>Как устроено решение</h2>
+    <div class="flow">
+      <div><b>1. Данные</b>Расходы, дороги и доступность рынков СберИндекса, справочник территорий, ставка, ИПЦ, календарь событий.</div>
+      <div><b>2. Панель</b>Одна строка — муниципалитет и месяц. Цель — «все категории», остальное идёт в признаки.</div>
+      <div><b>3. Прогноз</b>Prophet, сезонный наивный, панельный сезонный, LightGBM, Chronos-Bolt и медиана двух последних.</div>
+      <div><b>4. Метрики</b>Прямой прогноз на 1, 3, 6 и 12 месяцев. Сравнение по MAE и R².</div>
+      <div><b>5. Сдвиг</b>Остаток лучшего прогноза на один месяц подаётся в PELT, байесовский детектор, CUSUM, панельный z-score и новости.</div>
+      <div><b>6. Вывод</b>Выбирается модель точнее Prophet и детектор с высокой полнотой при ложных тревогах около 10%.</div>
+    </div>
+    <p>Новость стыкуется с расходом по месяцу и региону из справочника. Решение по ставке относится ко всей стране. На дату прогноза видны только уже случившиеся события. {html.escape(chronos_note or "")}</p>
+    <p class="note">{html.escape(prophet_note or "")}</p>
+  </section>
+
+  <section class="slide" id="cases">
+    <p class="kicker">Блок 3 · интерпретация на реальных примерах</p>
+    <h2>Что видно на событиях 2024 года</h2>
+    <div class="cards">
+      <div class="card"><b>Паводок, Оренбург, апрель 2024</b>Средний |z| региона не выше, чем у остальной страны. Месячный расход этот шок не показывает.</div>
+      <div class="card"><b>Теракт в «Крокусе», Москва, март 2024</b>Москва без Московской области выделяется на фоне страны: это локальный сдвиг месяца, а не общий календарный пик.</div>
+      <div class="card"><b>Ставка 18%, июль 2024</b>Средний |z| {_num(detection['cases']['rate_hike_2024_07_mean_abs_z'], 2)}, доля |z| &gt; 2 равна {_num(100 * (detection['cases']['share_abs_z_above_2_july'] or 0), 1)}%. В спокойном феврале {_num(detection['cases']['quiet_2024_02_mean_abs_z'], 2)} и {_num(100 * (detection['cases']['share_abs_z_above_2_february'] or 0), 1)}%. Общая для страны новость не выглядит местным шоком.</div>
+    </div>
+    <ul>{''.join(flood_bits) or '<li>Региональные сопоставления не собрались: проверьте поле региона в справочнике.</li>'}</ul>
+    {case_notes}
+    {''.join(charts)}
+    <p class="note">Полный текст методологии — в report/methodology.md.</p>
+  </section>
 </main>
 </body>
 </html>

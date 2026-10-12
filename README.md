@@ -5,7 +5,7 @@
 Методологический отчёт и презентация уже лежат в репозитории. Их не нужно получать повторным запуском кода.
 
 - Методологический отчёт: [report/methodology.md](report/methodology.md)
-- Презентация, интерактивный лендинг: [presentation/index.html](presentation/index.html). На GitHub файл открывается как код. Готовая страница: [djanettalanova2004-png.github.io/sberindex-task2](https://djanettalanova2004-png.github.io/sberindex-task2/)
+- Презентация итогов: [djanettalanova2004-png.github.io/sberindex-task2](https://djanettalanova2004-png.github.io/sberindex-task2/). В ней три блока: сравнение моделей и детекторов с метриками MAE и R², архитектура решения, интерпретация на реальных примерах. Исходный файл: [presentation/index.html](presentation/index.html).
 
 Нужен Python 3.11. На 3.14 часть библиотек (Prophet, Chronos) может не встать.
 
